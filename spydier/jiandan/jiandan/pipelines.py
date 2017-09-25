@@ -47,7 +47,14 @@ class ImageDownloaderPipeline(ImagesPipeline):
         for href in item['href']:
             yield scrapy.Request(href)
     def item_completed(self,results,item,info):
-        print results
+        # [(True, {'url': 'http://wx3.sinaimg.cn/mw600/7c4f157bly1fjttyr2k98j207x0aiaat.jpg', 'path': 'full/f008182965ea5d2088538e2abd72156245390ebd.jpg', 'checksum': '271fc88ab5450750bc450ce88e79a062'}), (True, {'url': 'http://wx3.sinaimg.cn/large/7c4f157bly1fjttyr2k98j207x0aiaat.jpg', 'path': 'full/155e7f24481a85f8365f0841ad966a7b785bb5d8.jpg', 'checksum': '271fc88ab5450750bc450ce88e79a062'})]
+        for result in results:
+            if True == result[0] and item['href'].count(result[1]['url']): 
+                index = item['href'].index(result[1]['url'])  
+                item['href'][index] = result[1]['path']
+            if True == result[0] and item['img'].count(result[1]['url']): 
+                index = item['img'].index(result[1]['url'])
+                item['img'][index] = result[1]['path']
         return item
 
     def check_gif(self, image):
