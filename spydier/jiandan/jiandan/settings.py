@@ -66,7 +66,8 @@ ROBOTSTXT_OBEY = True
 ITEM_PIPELINES = {
     'jiandan.pipelines.JiandanPipeline': 300,
     'jiandan.pipelines.JsonWriterPipeline':800,
-    'jiandan.pipelines.ImageDownloaderPipeline':500
+    'jiandan.pipelines.ImageDownloaderPipeline':500,
+    'jiandan.pipelines.NestPipeline':1000
 }
 
 IMAGES_STORE = './dir'

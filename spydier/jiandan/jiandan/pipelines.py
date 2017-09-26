@@ -17,6 +17,9 @@ except ImportError:
     from io import BytesIO
 from PIL import Image
 from scrapy.utils.misc import md5sum
+from scrapy.exceptions import DropItem
+import MySQLdb
+import string
 class JiandanPipeline(object):
     def process_item(self, item, spider):
         if len(item['href'])>0:
@@ -39,6 +42,28 @@ class JsonWriterPipeline(object):
         line = json.dumps(dict(item))+"\n"
         self.file.write(line)
         return item 
+
+class NestPipeline(object):
+    def __init__(self,dbname):
+        self.dbname = dbname
+    @classmethod
+    def from_crawler(cls,crawler):
+        return cls(dbname="nest")
+    def open_spider(self,spider):
+        self.conn = MySQLdb.connect(host="localhost",port=3306,user='root',passwd='7991205aa',db=self.dbname)
+        self.cur = self.conn.cursor()
+        self.cur.execute("create table IF NOT EXISTS eggs_nest(checksum varchar(32),support int, imgs varchar(300),hrefs varchar(300))")
+        self.conn.commit()
+    def close_spider(self,spider):
+        self.cur.close()
+        self.conn.close();
+    def process_item(self,item,spider):
+        hrefs = string.join(item['href'],"|")
+        imgs = string.join(item['img'],"|")
+        self.cur.execute("insert into eggs_nest VALUES('"+item['checksum'] + "' ," + str(item['support'])+" , '"+imgs + "', '"+hrefs+"')")
+        self.conn.commit()
+        return item
+    
     
 class ImageDownloaderPipeline(ImagesPipeline):
     def get_media_requests(self,item,info):
@@ -56,7 +81,10 @@ class ImageDownloaderPipeline(ImagesPipeline):
             if True == result[0] and item['img'].count(result[1]['url']): 
                 index = item['img'].index(result[1]['url'])
                 item['img'][index] = result[1]['path']
-        return item
+        if item['checksum'] is None:
+            raise DropItem("duplicated egg found:%s" % item)
+        else:
+            return item
 
     def check_gif(self, image):
         if image.format == 'GIF':
