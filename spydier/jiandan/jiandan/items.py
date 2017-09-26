@@ -12,3 +12,4 @@ class JiandanItem(scrapy.Item):
     href = scrapy.Field()
     support = scrapy.Field()
     img = scrapy.Field()
+    checksum = scrapy.Field()

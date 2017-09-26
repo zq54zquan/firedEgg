@@ -52,6 +52,7 @@ class ImageDownloaderPipeline(ImagesPipeline):
             if True == result[0] and item['href'].count(result[1]['url']): 
                 index = item['href'].index(result[1]['url'])  
                 item['href'][index] = result[1]['path']
+                item['checksum'] = result[1]['checksum']
             if True == result[0] and item['img'].count(result[1]['url']): 
                 index = item['img'].index(result[1]['url'])
                 item['img'][index] = result[1]['path']
