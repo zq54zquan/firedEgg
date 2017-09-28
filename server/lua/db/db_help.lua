@@ -5,6 +5,9 @@ _M.DB_ORDER_TYPE_NATURAL = 0 ---- 数据库自然排序
 _M.DB_ORDER_TYPE_SUPPORT = 1 ---- 赞数排序
 _M.DB_QUERY_FAILED = 0  ---- 数据库请求失败
 _M.DB_QUERY_SUCCESS = 1  ---- 数据库请求失败
+_M.DB_UPDATE_ADD= 1  ---- 数据库请求失败
+_M.DB_UPDATE_SUB= 1  ---- 数据库请求失败 
+
 --------------------------------------------------------------------------------
 -- 连接数据库，返回数据库成功标记和数据库对象db
 --------------------------------------------------------------------------------
@@ -48,4 +51,14 @@ function _M.db_query_with_page(self,db,page,page_size,order_type)
     end
 	return self.DB_QUERY_SUCCESS,res
 end
+
+function _M.db_update_with_checksum(self,db,checksum,support_type) 
+    local res,err,errcode,sqlstate = db:query("select support from eggs_nest where checksum = '"..checksum.."'")       
+    if not res then 
+        return self.DB_QUERY_FAILED,nil            
+    end
+    local cjson = require "cjson"
+    ngx.say(cjson.encode(res))
+   -- res,err,errcode,sqlstate = db:query("update eggs_nest "..order_query..'limit '..page*page_size..","..page_size)       
+end        
 return _M
