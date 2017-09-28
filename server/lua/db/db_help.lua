@@ -39,20 +39,13 @@ end
 function _M.db_query_with_page(self,db,page,page_size,order_type)
     local order_query = ""
     if self.DB_ORDER_TYPE_SUPPORT == order_type then
-        order_query = "order by support "
+        order_query = "order by support desc "
     end
-    local res,err,errcode,sqlstate = db:query("select * from eggs_nest "..order_query..'limit'..page*page_size..","..page_size)       
+    local res,err,errcode,sqlstate = db:query("select * from eggs_nest "..order_query..'limit '..page*page_size..","..page_size)       
     if not res then 
+		ngx.log(ngx.ERR,err)
         return self.DB_QUERY_FAILED,nil
     end
-    local cjson = require "cjson"
-    ngx.say("#"..cjson.encode(res));
-    while err == 'again' do 
-        res,err,errcode,sqlstate = db.read_result()
-        if not res then 
-            return self.DB_QUERY_FAILED,nil
-        end
-        ngx.say("#"..cjson.encode(res));
-    end
+	return self.DB_QUERY_SUCCESS,res
 end
 return _M
