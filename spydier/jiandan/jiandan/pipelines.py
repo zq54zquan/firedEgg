@@ -20,6 +20,29 @@ from scrapy.utils.misc import md5sum
 from scrapy.exceptions import DropItem
 import MySQLdb
 import string
+class BadEggPipeline(object):
+    def __init__(self,dbname):
+        self.dbname = dbname
+    @classmethod
+    def from_crawler(cls,crawler):
+        return cls(dbname="nest")
+    def open_spider(self,spider):
+        self.conn = MySQLdb.connect(host="localhost",port=3306,user='root',passwd='7991205aa',db=self.dbname)
+        self.cur = self.conn.cursor()
+        self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int, imgs varchar(1000),hrefs varchar(1000))")
+        self.conn.commit()
+    def close_spider(self,spider):
+        self.cur.close()
+        self.conn.close();
+    def process_item(self,item,spider):
+        self.cur.execute("select count(itemid) from eggs_nest where itemid = '"+item['itemId']+"'")
+        count =  int(self.cur.fetchone()[0])
+        if count >=1 :
+            log.msg("*********************", level=log.WARNING)
+            raise DropItem("duplicated egg found:%s" % item)
+        return item
+    
+    
 class JiandanPipeline(object):
     def process_item(self, item, spider):
         if len(item['href'])>0:
@@ -52,7 +75,7 @@ class NestPipeline(object):
     def open_spider(self,spider):
         self.conn = MySQLdb.connect(host="localhost",port=3306,user='root',passwd='7991205aa',db=self.dbname)
         self.cur = self.conn.cursor()
-        self.cur.execute("create table IF NOT EXISTS eggs_nest(checksum varchar(32),support int, imgs varchar(300),hrefs varchar(300))")
+        self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int, imgs varchar(1000),hrefs varchar(1000))")
         self.conn.commit()
     def close_spider(self,spider):
         self.cur.close()
@@ -60,7 +83,7 @@ class NestPipeline(object):
     def process_item(self,item,spider):
         hrefs = string.join(item['href'],"|")
         imgs = string.join(item['img'],"|")
-        self.cur.execute("insert into eggs_nest VALUES('"+item['checksum'] + "' ," + str(item['support'])+" , '"+imgs + "', '"+hrefs+"')")
+        self.cur.execute("insert into eggs_nest VALUES('"+item['itemId']+"','"+item['checksum'] + "' ," + str(item['support'])+" , '"+imgs + "', '"+hrefs+"')")
         self.conn.commit()
         return item
     

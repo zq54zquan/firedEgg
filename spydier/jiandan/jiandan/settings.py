@@ -64,6 +64,7 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
+    'jiandan.pipelines.BadEggPipeline' :100,
     'jiandan.pipelines.JiandanPipeline': 300,
     'jiandan.pipelines.JsonWriterPipeline':800,
     'jiandan.pipelines.ImageDownloaderPipeline':500,

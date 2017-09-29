@@ -13,4 +13,5 @@ class JiandanSpider(CrawlSpider):
             i['href'] = sel.xpath('div[@class="text"]//a[@class="view_img_link"]/@href').extract()
             i['support']=int(sel.xpath('div[@class="jandan-vote"]/span[@class="tucao-like-container"]/span[1]/text()').extract()[0])
             i['img'] = sel.xpath('div[@class="text"]//img/@src').extract()
+            i['itemId'] =  sel.xpath('div[@class="jandan-vote"]/span[@class="tucao-like-container"]/a[1]/@data-id').extract()[0]
             yield i;
