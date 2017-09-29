@@ -42,9 +42,9 @@ end
 function _M.db_query_with_page(self,db,page,page_size,order_type)
     local order_query = ""
     if self.DB_ORDER_TYPE_SUPPORT == order_type then
-        order_query = "order by support desc "
+        order_query = "order by eggs_nest.support desc "
     end
-    local res,err,errcode,sqlstate = db:query("select * from eggs_nest "..order_query..'limit '..page*page_size..","..page_size)       
+    local res,err,errcode,sqlstate = db:query("select eggs_nest.itemid,eggs_nest.support,GROUP_CONCAT(eggs_href.href),GROUP_CONCAT(eggs_href.img) from eggs_nest left join eggs_href on eggs_nest.itemid = eggs_href.itemid group by eggs_nest.itemid,eggs_nest.support "..order_query..'limit '..page*page_size..","..page_size)       
     if not res then 
 		ngx.log(ngx.ERR,err)
         return self.DB_QUERY_FAILED,nil

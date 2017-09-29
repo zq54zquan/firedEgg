@@ -29,7 +29,7 @@ class BadEggPipeline(object):
     def open_spider(self,spider):
         self.conn = MySQLdb.connect(host="localhost",port=3306,user='root',passwd='7991205aa',db=self.dbname)
         self.cur = self.conn.cursor()
-        self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int, imgs varchar(1000),hrefs varchar(1000))")
+        self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int)")
         self.conn.commit()
     def close_spider(self,spider):
         self.cur.close()
@@ -75,15 +75,18 @@ class NestPipeline(object):
     def open_spider(self,spider):
         self.conn = MySQLdb.connect(host="localhost",port=3306,user='root',passwd='7991205aa',db=self.dbname)
         self.cur = self.conn.cursor()
-        self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int, imgs varchar(1000),hrefs varchar(1000))")
+        self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int)")
+        self.cur.execute("create table IF NOT EXISTS eggs_href(itemid varchar(64), img varchar(1000), href varchar(1000))")
         self.conn.commit()
     def close_spider(self,spider):
         self.cur.close()
         self.conn.close();
     def process_item(self,item,spider):
-        hrefs = string.join(item['href'],"|")
-        imgs = string.join(item['img'],"|")
-        self.cur.execute("insert into eggs_nest VALUES('"+item['itemId']+"','"+item['checksum'] + "' ," + str(item['support'])+" , '"+imgs + "', '"+hrefs+"')")
+        hrefs = item['href']
+        imgs = item['img']
+        self.cur.execute("insert into eggs_nest VALUES('"+item['itemId']+"','"+item['checksum'] + "' ," + str(item['support'])+")")
+        for i in range(0,len(hrefs)):
+            self.cur.execute("insert into eggs_href VALUES('"+item['itemId']+"','"+imgs[i]+"','"+hrefs[i]+"')")
         self.conn.commit()
         return item
     
