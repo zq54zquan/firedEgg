@@ -1,5 +1,6 @@
 local dbhelp = require "db.db_help"
 local function strSplit(delimeter, str)  
+    local domain = 'http://www.firegg.top:8099/'
     local find, sub, insert = string.find, string.sub, table.insert  
     local res = {}  
     local start, start_pos, end_pos = 1, 1, 1  
@@ -8,10 +9,10 @@ local function strSplit(delimeter, str)
         if not start_pos then  
             break  
         end  
-        insert(res, sub(str, start, start_pos - 1))  
+        insert(res, domain..sub(str, start, start_pos - 1))  
         start = end_pos + 1    
     end  
-    insert(res, sub(str,start))  
+    insert(res, domain..sub(str,start))  
     return res  
 end  
 

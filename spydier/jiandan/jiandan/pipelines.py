@@ -99,13 +99,18 @@ class ImageDownloaderPipeline(ImagesPipeline):
             yield scrapy.Request(href)
     def item_completed(self,results,item,info):
         # [(True, {'url': 'http://wx3.sinaimg.cn/mw600/7c4f157bly1fjttyr2k98j207x0aiaat.jpg', 'path': 'full/f008182965ea5d2088538e2abd72156245390ebd.jpg', 'checksum': '271fc88ab5450750bc450ce88e79a062'}), (True, {'url': 'http://wx3.sinaimg.cn/large/7c4f157bly1fjttyr2k98j207x0aiaat.jpg', 'path': 'full/155e7f24481a85f8365f0841ad966a7b785bb5d8.jpg', 'checksum': '271fc88ab5450750bc450ce88e79a062'})]
+	item['checksum'] = None
         for result in results:
             if True == result[0] and item['href'].count(result[1]['url']): 
                 index = item['href'].index(result[1]['url'])  
+		if result[1]['url'][-3:] == 'gif':
+		    result[1]['path'] = result[1]['path'][:-3]+'gif' 
                 item['href'][index] = result[1]['path']
                 item['checksum'] = result[1]['checksum']
             if True == result[0] and item['img'].count(result[1]['url']): 
                 index = item['img'].index(result[1]['url'])
+		if result[1]['url'][-3:] == 'gif':
+		    result[1]['path'] = result[1]['path'][:-3]+'gif' 
                 item['img'][index] = result[1]['path']
         if item['checksum'] is None:
             raise DropItem("duplicated egg found:%s" % item)
@@ -129,13 +134,14 @@ class ImageDownloaderPipeline(ImagesPipeline):
     def image_downloaded(self, response, request, info):
         checksum = None
         for key, image, buf in self.get_images(response, request, info):
-            log.msg(key+"===============", level=log.WARNING)
-            if checksum is None:
+	    isgif = self.check_gif(image)
+            if checksum is None and True != isgif:
                 buf.seek(0)
                 checksum = md5sum(buf)
-            if  self.check_gif(image):
+            if isgif: 
                 # Save gif from response directly.
                 self.persist_gif(key, response.body, info)
+		checksum = 'gif'
             else:
                 width, height = image.size
                 self.store.persist_file(key, buf, info,meta={'width': width, 'height': height},headers={'Content-Type': 'image/jpeg'})
@@ -144,8 +150,7 @@ class ImageDownloaderPipeline(ImagesPipeline):
     def convert_image(self, image, size=None):
         buf = BytesIO()
         if image.format == 'GIF':
-            buf.write(image.data())
-            return image,buf
+            	return image,buf
         elif image.format == 'PNG' and image.mode == 'RGBA':
             background = Image.new('RGBA', image.size, (255, 255, 255))
             background.paste(image, image)
@@ -157,10 +162,6 @@ class ImageDownloaderPipeline(ImagesPipeline):
             image = background.convert('RGB')
         elif image.mode != 'RGB':
             image = image.convert('RGB')
-
-        if size:
-            image = image.copy()
-            image.thumbnail(size, Image.ANTIALIAS)
 
         image.save(buf, 'JPEG')
         return image, buf

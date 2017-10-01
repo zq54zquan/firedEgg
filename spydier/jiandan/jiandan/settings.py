@@ -72,6 +72,7 @@ ITEM_PIPELINES = {
 }
 
 IMAGES_STORE = './dir'
+IMAGES_MIN_WIDTH = 20
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True
