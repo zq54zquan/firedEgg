@@ -1,5 +1,4 @@
 local dbhelp = require "db.db_help"
-local code,db = dbhelp:con_db()
 local function strSplit(delimeter, str)  
     local find, sub, insert = string.find, string.sub, table.insert  
     local res = {}  
@@ -17,10 +16,10 @@ local function strSplit(delimeter, str)
 end  
 
 local function get_data(page,page_size) 
-    if code ~=  dbhelp.DB_CONN_FAILED then
-        local st,res = dbhelp:db_query_with_page(db,page,page_size,dbhelp.DB_ORDER_TYPE_SUPPORT)
-	if st == dbhelp.DB_CONN_SUCCESS then 
-		local cjson = require "cjson"
+	local dbhelp = require "db.db_help" 
+	local c,db = dbhelp:con_db()
+	local st,res = dbhelp:db_query_with_page(db,page,page_size,dbhelp.DB_ORDER_TYPE_SUPPORT)
+	if st == dbhelp.DB_QUERY_SUCCESS then 
 		local data = res
 		for v =1,#data do
 		    local hd = res[v]['hd']
@@ -35,9 +34,6 @@ local function get_data(page,page_size)
 	else 
 		ngx.say(cjson.encode({code=200,data=nil}))
 	end
-    else
-		ngx.say(cjson.encode({code=200,data=nil}))
-    end
 end
 local args = ngx.req.get_uri_args()
 local page = args["page"] or 0
