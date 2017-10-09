@@ -18,7 +18,7 @@ function _M.con_db(self)
         return self.DB_CONN_FAILED;
     end
          
-    db:set_timeout(1000) --- 1 second
+    db:set_timeout(4000) --- 1 second
     local ok,err,errcode,sqlstate = db:connect{
         host = '127.0.0.1',
         port = '3306',
@@ -45,10 +45,9 @@ function _M.db_query_with_page(self,db,page,page_size,order_type)
     if self.DB_ORDER_TYPE_SUPPORT == order_type then
         order_query = "order by eggs_nest.support desc "
     end
-    local res,err,errcode,sqlstate = db:query("select eggs_nest.itemid,eggs_nest.support,GROUP_CONCAT(eggs_href.href) as hd,GROUP_CONCAT(eggs_href.img) as thumb,GROUP_CONCAT(eggs_href.href_width) as hd_width,GROUP_CONCAT(eggs_href.href_height) as hd_height,GROUP_CONCAT(eggs_href.img_width) as thumb_width,GROUP_CONCAT(eggs_href.img_height) as thumb_height from eggs_nest join eggs_href on eggs_nest.itemid = eggs_href.itemid group by eggs_nest.itemid,eggs_nest.support "..order_query..'limit '..page*page_size..","..page_size)       
+    local res,err,errcode,sqlstate = db:query("select eggs_nest.ctime,eggs_nest.itemid,eggs_nest.support,GROUP_CONCAT(eggs_href.href) as hd,GROUP_CONCAT(eggs_href.img) as thumb,GROUP_CONCAT(eggs_href.href_width) as hd_width,GROUP_CONCAT(eggs_href.href_height) as hd_height,GROUP_CONCAT(eggs_href.img_width) as thumb_width,GROUP_CONCAT(eggs_href.img_height) as thumb_height from eggs_nest join eggs_href on eggs_nest.itemid = eggs_href.itemid group by eggs_nest.itemid,eggs_nest.support "..order_query..'limit '..page*page_size..","..page_size)       
     if not res then 
 		db:close()
-		ngx.log(ngx.ERR,err)
         return self.DB_QUERY_FAILED,nil
     end
 	db:close()

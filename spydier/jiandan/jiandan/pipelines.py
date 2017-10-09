@@ -94,21 +94,16 @@ class NestPipeline(object):
 		item['checksum'] = 'img'
 		m = re.match(r'@(\d+) (min|hour|day|week|month)',item['ctime'])
 		ctime = now
-		if m.group(1) == 'min':
-			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
-			ctime = now-60*int(m.group(2))
-		elif m.group(1) == 'hour':
-			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
-			ctime = now-60*60*int(m.group(2))
-		elif m.group(1) == 'day':
-			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
-			ctime = now-60*60*24*int(m.group(2))
-		elif m.group(1) == 'week':
-			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
-			ctime = now-7*60*60*24*int(m.group(2))
-		elif m.group(1) == 'month':
-			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
-			ctime = now-30*24*60*60*int(m.group(2))
+		if m.group(2) == 'min':
+			ctime = now-60*int(m.group(1))
+		elif m.group(2) == 'hour':
+			ctime = now-60*60*int(m.group(1))
+		elif m.group(2) == 'day':
+			ctime = now-60*60*24*int(m.group(1))
+		elif m.group(2) == 'week':
+			ctime = now-7*60*60*24*int(m.group(1))
+		elif m.group(2) == 'month':
+			ctime = now-30*24*60*60*int(m.group(1))
 		self.cur.execute("insert into eggs_nest VALUES('"+item['itemId']+"','"+item['checksum'] + "' ," + str(item['support'])+","+str(ctime)+")")
 		for i in range(0,len(hrefs)):
 			self.cur.execute("insert into eggs_href VALUES('"+item['itemId']+"','"+imgs[i]+"','"+hrefs[i]+"',"+str(href_width[i])+","+str(href_height[i])+","+str(img_width[i])+","+str(img_height[i])+")")
