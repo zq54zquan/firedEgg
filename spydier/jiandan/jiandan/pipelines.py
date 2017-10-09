@@ -11,6 +11,7 @@ import os
 from scrapy.contrib.pipeline.images import ImagesPipeline
 from scrapy.pipelines.files import FileException, FilesPipeline
 from scrapy.utils.python import to_bytes
+import re
 try:
 	from cStringIO import StringIO as BytesIO
 except ImportError:
@@ -20,7 +21,9 @@ from scrapy.utils.misc import md5sum
 from scrapy.exceptions import DropItem
 import MySQLdb
 import string
+import time
 store_uri_path = '/user/egg/firedEgg/spydier/jiandan/dir/'
+now = time.time()
 class BadEggPipeline(object):
 	def __init__(self,dbname):
 		self.dbname = dbname
@@ -30,7 +33,7 @@ class BadEggPipeline(object):
 	def open_spider(self,spider):
 		self.conn = MySQLdb.connect(host="localhost",port=3306,user='root',passwd='7991205aa',db=self.dbname)
 		self.cur = self.conn.cursor()
-		self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int)")
+		self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int, ctime int)")
 		self.conn.commit()
 	def close_spider(self,spider):
 		self.cur.close()
@@ -75,7 +78,7 @@ class NestPipeline(object):
 	def open_spider(self,spider):
 		self.conn = MySQLdb.connect(host="localhost",port=3306,user='root',passwd='7991205aa',db=self.dbname)
 		self.cur = self.conn.cursor()
-		self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int)")
+		self.cur.execute("create table IF NOT EXISTS eggs_nest(itemid varchar(64),checksum varchar(32),support int,ctime int)")
 		self.cur.execute("create table IF NOT EXISTS eggs_href(itemid varchar(64), img varchar(1000), href varchar(1000),href_width int, href_height int, img_width int, img_height int)")
 		self.conn.commit()
 	def close_spider(self,spider):
@@ -89,7 +92,24 @@ class NestPipeline(object):
 		img_height = item['img_height']
 		img_width = item['img_width']
 		item['checksum'] = 'img'
-		self.cur.execute("insert into eggs_nest VALUES('"+item['itemId']+"','"+item['checksum'] + "' ," + str(item['support'])+")")
+		m = re.match(r'@(\d+) (min|hour|day|week|month)',item['ctime'])
+		ctime = now
+		if m.group(1) == 'min':
+			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
+			ctime = now-60*int(m.group(2))
+		elif m.group(1) == 'hour':
+			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
+			ctime = now-60*60*int(m.group(2))
+		elif m.group(1) == 'day':
+			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
+			ctime = now-60*60*24*int(m.group(2))
+		elif m.group(1) == 'week':
+			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
+			ctime = now-7*60*60*24*int(m.group(2))
+		elif m.group(1) == 'month':
+			log.msg('2****************'+m.group(2)+'****************',level=log.WARNING)
+			ctime = now-30*24*60*60*int(m.group(2))
+		self.cur.execute("insert into eggs_nest VALUES('"+item['itemId']+"','"+item['checksum'] + "' ," + str(item['support'])+","+str(ctime)+")")
 		for i in range(0,len(hrefs)):
 			self.cur.execute("insert into eggs_href VALUES('"+item['itemId']+"','"+imgs[i]+"','"+hrefs[i]+"',"+str(href_width[i])+","+str(href_height[i])+","+str(img_width[i])+","+str(img_height[i])+")")
 		self.conn.commit()
