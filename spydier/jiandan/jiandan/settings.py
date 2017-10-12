@@ -66,12 +66,12 @@ ROBOTSTXT_OBEY = True
 ITEM_PIPELINES = {
     'jiandan.pipelines.BadEggPipeline' :100,
     'jiandan.pipelines.JiandanPipeline': 300,
-    'jiandan.pipelines.JsonWriterPipeline':800,
     'jiandan.pipelines.ImageDownloaderPipeline':500,
     'jiandan.pipelines.NestPipeline':1000
 }
 
 IMAGES_STORE = './dir'
+IMAGES_MIN_WIDTH = 20
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True
