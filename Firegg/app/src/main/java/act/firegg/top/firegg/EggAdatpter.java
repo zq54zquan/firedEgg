@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
 
@@ -24,12 +25,10 @@ public class EggAdatpter extends RecyclerView.Adapter<EggAdatpter.ViewHolder> {
     private Context mContext;
     private int screenWidth = 0;
     static class ViewHolder extends RecyclerView.ViewHolder {
-        CardView cardView;
-        ImageView eggImage;
+        LinearLayout eggContainer;
         public ViewHolder(View view) {
             super(view);
-            cardView = (CardView)view;
-            eggImage = (ImageView) view.findViewById(R.id.egg_img);
+            eggContainer = (LinearLayout) view.findViewById(R.id.image_container);
         }
     }
 
@@ -56,17 +55,38 @@ public class EggAdatpter extends RecyclerView.Adapter<EggAdatpter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         EggElemet egg = eggElemets.get(position);
-        ViewGroup.LayoutParams layout = holder.eggImage.getLayoutParams();
-        layout.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        layout.width = screenWidth;
-        holder.eggImage.setLayoutParams(layout);
-        holder.eggImage.setMaxHeight(screenWidth*100);
-        holder.eggImage.setMaxWidth(screenWidth);
-        if (egg.getThumb().get(0).endsWith("gif")) {
-            Glide.with(mContext).load(egg.getThumb().get(0)).asGif().into(holder.eggImage);
-        }else {
-            Glide.with(mContext).load(egg.getThumb().get(0)).into(holder.eggImage);
+
+        int count = holder.eggContainer.getChildCount();
+        for (int i = 0; i < count ; ++i) {
+            View v = holder.eggContainer.getChildAt(i);
+            if (v instanceof ImageView) {
+                holder.eggContainer.removeView(v);
+            }
         }
+
+        count = egg.getThumb().size();
+        int allheight = 0;
+        for (int i  = 0 ; i < count ; ++i) {
+            String thumb = egg.getThumb().get(i);
+            int w = egg.getThumb_width().get(i);
+            int h = egg.getThumb_height().get(i);
+            ImageView imageView = new ImageView(mContext);
+            int width = screenWidth;
+            int height = (int) ((float) screenWidth/w * h);
+            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(width,height);
+            imageView.setLayoutParams(params);
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            holder.eggContainer.addView(imageView);
+            if (thumb.endsWith("gif")) {
+                Glide.with(mContext).load(thumb).asGif().into(imageView);
+            } else {
+                Glide.with(mContext).load(thumb).into(imageView);
+            }
+            allheight += height;
+        }
+        ViewGroup.LayoutParams params = holder.eggContainer.getLayoutParams();
+        params.height = allheight;
+        holder.eggContainer.setLayoutParams(params);
     }
 
     @Override
